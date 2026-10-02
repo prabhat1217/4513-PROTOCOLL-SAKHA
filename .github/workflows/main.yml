@@ -19,34 +19,43 @@ jobs:
         with:
           node-version: 22
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
       - name: Install project dependencies
         run: npm install
 
-      - name: Install Capacitor packages
-        run: npm install --save-dev @capacitor/cli @capacitor/core @capacitor/android
+      - name: Install Capacitor
+        run: npm install --no-save @capacitor/cli @capacitor/core @capacitor/android
 
-      - name: Create web directory
+      - name: Prepare web directory
         run: |
           rm -rf www
           mkdir -p www
+
           cp index.html www/
           cp main.js www/
-          cp native-shim.js www/
-          cp preload.js www/
-          cp prompt.html www/
-          cp prompt-preload.js www/
+
+          if [ -f native-shim.js ]; then cp native-shim.js www/; fi
+          if [ -f preload.js ]; then cp preload.js www/; fi
+          if [ -f prompt.html ]; then cp prompt.html www/; fi
+          if [ -f prompt-preload.js ]; then cp prompt-preload.js www/; fi
+
           cp icon*.png www/ 2>/dev/null || true
 
-      - name: Prepare web files
+      - name: Prepare Android web files
         run: python3 prepare_web.py www node_modules --android
 
-      - name: Verify Capacitor CLI
+      - name: Verify Capacitor
         run: npx cap --version
 
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Sync Android
+      - name: Sync Capacitor
         run: npx cap sync android
 
       - name: Make Gradle executable
@@ -54,12 +63,12 @@ jobs:
 
       - name: Build Debug APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --stacktrace
 
-      - name: Verify APK
+      - name: Check APK
         run: |
-          ls -lh android/app/build/outputs/apk/debug/
-          test -f android/app/build/outputs/apk/debug/app-debug.apk
+          echo "APK files:"
+          find android/app/build/outputs/apk -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
