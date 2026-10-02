@@ -19,35 +19,47 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install dependencies
+      - name: Install project dependencies
         run: npm install
 
-      - name: Prepare web folder
+      - name: Install Capacitor packages
+        run: npm install --save-dev @capacitor/cli @capacitor/core @capacitor/android
+
+      - name: Create web directory
         run: |
-          mkdir -p web
-          cp index.html web/
-          cp main.js web/
-          cp native-shim.js web/
-          cp prompt.html web/
-          cp prompt-preload.js web/
-          cp preload.js web/
-          cp -r icon*.png web/ 2>/dev/null || true
+          rm -rf www
+          mkdir -p www
+          cp index.html www/
+          cp main.js www/
+          cp native-shim.js www/
+          cp preload.js www/
+          cp prompt.html www/
+          cp prompt-preload.js www/
+          cp icon*.png www/ 2>/dev/null || true
 
-      - name: Prepare Android web files
-        run: python3 prepare_web.py web PROTOCOL-SAKHA --android
+      - name: Prepare web files
+        run: python3 prepare_web.py www node_modules --android
 
-      - name: Install Capacitor Android
-        run: npm install @capacitor/android
+      - name: Verify Capacitor CLI
+        run: npx cap --version
 
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Sync Capacitor
+      - name: Sync Android
         run: npx cap sync android
+
+      - name: Make Gradle executable
+        run: chmod +x android/gradlew
 
       - name: Build Debug APK
         working-directory: android
         run: ./gradlew assembleDebug
+
+      - name: Verify APK
+        run: |
+          ls -lh android/app/build/outputs/apk/debug/
+          test -f android/app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
