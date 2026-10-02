@@ -22,8 +22,19 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Prepare web files
-        run: python3 prepare_web.py index.html PROTOCOL-SAKHA --android
+      - name: Prepare web folder
+        run: |
+          mkdir -p web
+          cp index.html web/
+          cp main.js web/
+          cp native-shim.js web/
+          cp prompt.html web/
+          cp prompt-preload.js web/
+          cp preload.js web/
+          cp -r icon*.png web/ 2>/dev/null || true
+
+      - name: Prepare Android web files
+        run: python3 prepare_web.py web PROTOCOL-SAKHA --android
 
       - name: Install Capacitor Android
         run: npm install @capacitor/android
