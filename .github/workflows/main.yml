@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Prepare web files
-        run: python3 prepare_web.py
+        run: python3 prepare_web.py index.html PROTOCOL-SAKHA --android
 
       - name: Install Capacitor Android
         run: npm install @capacitor/android
